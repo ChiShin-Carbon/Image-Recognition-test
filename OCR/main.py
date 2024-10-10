@@ -1,8 +1,7 @@
 from fastapi import FastAPI
-from test_router import test_router
 from connect import connect_to_mongo
-from create import create
 from fastapi.middleware.cors import CORSMiddleware
+from ocrapi import ocrapi
 
 app = FastAPI()
 
@@ -20,7 +19,8 @@ app.add_middleware(
 connect_to_mongo()
 
 # Include routers
-app.include_router(create)
+app.include_router(ocrapi)
+
 
 @app.get("/")
 async def read_root():

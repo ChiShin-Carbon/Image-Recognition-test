@@ -1,37 +1,43 @@
 "use client"; // Add this to make the component a Client Component
 
-import React from "react";
+import React, { useState } from "react";
 
 export default function Home() {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [recognizedText, setRecognizedText] = useState<string | null>(null); // State for recognized text
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImagePreview(imageUrl);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent the default form submission behavior
+    e.preventDefault();
 
-    // Get input elements
-    const nameElement = document.getElementById("name") as HTMLInputElement;
-    const ageElement = document.getElementById("age") as HTMLInputElement;
+    const imageElement = document.getElementById("image") as HTMLInputElement;
 
-    if (!nameElement || !ageElement) {
-      console.error("Form elements not found");
+    if (!imageElement || !imageElement.files) {
+      console.error("Form elements or image files not found");
       return;
     }
 
-    // Prepare the data to send
-    const data = {
-      name: nameElement.value,
-      age: ageElement.value,
-    };
+    const formData = new FormData();
+    formData.append("image", imageElement.files[0]);
 
     try {
-      // Send a POST request to the backend
-      const res = await fetch("http://localhost:8000/create-test", {
+      const res = await fetch("http://localhost:8000/ocrapi", {
         method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        body: formData,
       });
 
       if (res.ok) {
+        const data = await res.json();
+        setRecognizedText(data.recognized_text); // Set the recognized text in state
         console.log("Data submitted successfully");
       } else {
         console.error("Failed to submit data");
@@ -43,17 +49,37 @@ export default function Home() {
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
+      <form onChange={handleSubmit}>
         <label>
-          Name:
-          <input type="text" id="name" name="name" required />
+          Image:
+          <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/*"
+            required
+            onChange={handleImageChange}
+          />
         </label>
-        <label>
-          Age:
-          <input type="text" id="age" name="age" required />
-        </label>
-        <button type="submit">Submit</button>
       </form>
+
+      {/* Show image preview if available */}
+      {imagePreview && (
+        <div>
+          <img src={imagePreview} alt="Selected" style={{ maxWidth: "500px" }} />
+        </div>
+      )}
+
+      {/* Show recognized text if available */}
+      {recognizedText !== null ? (
+        <div>
+          <h3>Recognized Text:</h3>
+          <p>{recognizedText}</p>
+        </div>
+      ) : (
+        <p>Recognized text will be shown here</p>
+      )}
+
     </div>
   );
 }
