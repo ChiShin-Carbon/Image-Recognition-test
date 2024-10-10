@@ -6,13 +6,19 @@ from ocrapi import ocrapi
 app = FastAPI()
 
 
+origins = [
+    "https://my-nextjs-69tqp1kw2-chengggkks-projects.vercel.app",  # Replace with your actual Vercel domain
+    "http://localhost:3000",  # Local development
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 
 # Connect to MongoDB
